@@ -11,6 +11,7 @@ load(
     "triple_to_constraint_set",
     "triple_to_system",
 )
+load("//worker:repositories.bzl", "rust_worker_repositories")
 
 DEFAULT_TOOLCHAIN_NAME_PREFIX = "toolchain_for"
 
@@ -117,6 +118,8 @@ def rust_repositories(
         sha256s = sha256s,
         edition = edition,
     )
+
+    rust_worker_repositories()
 
 def _check_version_valid(version, iso_date, param_prefix = ""):
     """Verifies that the provided rust version and iso_date make sense."""
