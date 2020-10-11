@@ -62,6 +62,8 @@ def _build_script_impl(ctx):
     # Pull in env vars which may be required for the cc_toolchain to work (e.g. on OSX, the SDK version).
     # We hope that the linker env is sufficient for the whole cc_toolchain.
     cc_toolchain, feature_configuration = get_cc_toolchain(ctx)
+    cc_env = get_cc_compile_env(cc_toolchain, feature_configuration)
+    env.update(**cc_env)
     _, _, linker_env = get_linker_and_args(ctx, cc_toolchain, feature_configuration, None)
     env.update(**linker_env)
 

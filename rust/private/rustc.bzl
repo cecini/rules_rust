@@ -14,11 +14,7 @@
 
 # buildifier: disable=module-docstring
 load("@bazel_skylib//lib:versions.bzl", "versions")
-load(
-    "@bazel_tools//tools/build_defs/cc:action_names.bzl",
-    "CPP_LINK_EXECUTABLE_ACTION_NAME",
-    "C_COMPILE_ACTION_NAME",
-)
+load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "CPP_LINK_EXECUTABLE_ACTION_NAME", "C_COMPILE_ACTION_NAME")
 load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
 load("@bazel_version//:def.bzl", "BAZEL_VERSION")
 load("@io_bazel_rules_rust//rust:private/legacy_cc_starlark_api_shim.bzl", "get_libs_for_static_executable")
