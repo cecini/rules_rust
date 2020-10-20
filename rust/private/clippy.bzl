@@ -100,6 +100,9 @@ def _clippy_aspect_impl(target, ctx):
     # and Clippy won't be re-triggered unless the source file is modified.
     args.add("-Dwarnings")
 
+    if crate_info.is_test:
+        args.add("--test")
+
     ctx.actions.run(
         executable = ctx.executable._process_wrapper,
         inputs = compile_inputs,
