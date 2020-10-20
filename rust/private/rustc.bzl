@@ -412,7 +412,8 @@ def construct_arguments(
         build_env_file,
         build_flags_files,
         maker_path = None,
-        aspect = False):
+        aspect = False,
+        emit = "dep-info,link"):
     """Builds an Args object containing common rustc flags
 
     Args:
@@ -431,6 +432,7 @@ def construct_arguments(
         build_flags_files (list): The output files of a `cargo_build_script` actions containing rustc build flags
         maker_path (File): An optional clippy marker file
         aspect (bool): True if called in an aspect context.
+        emit (str): a string to pass to --emit
 
     Returns:
         tuple: A tuple of the following items
@@ -512,7 +514,7 @@ def construct_arguments(
     args.add("--codegen=opt-level=" + compilation_mode.opt_level)
     args.add("--codegen=debuginfo=" + compilation_mode.debug_info)
 
-    args.add("--emit=dep-info,link")
+    args.add("--emit=" + emit)
     args.add("--color=always")
     args.add("--target=" + toolchain.target_triple)
     if hasattr(ctx.attr, "crate_features"):
