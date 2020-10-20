@@ -93,6 +93,7 @@ def _clippy_aspect_impl(target, ctx):
         build_flags_files = build_flags_files,
         maker_path = clippy_marker.path,
         aspect = True,
+        emit = "dep-info,metadata",
     )
 
     # Turn any warnings from clippy or rustc into an error, as otherwise
