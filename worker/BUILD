@@ -26,3 +26,18 @@ toolchain(
     toolchain = ":worker_linux_x86_64",
     toolchain_type = ":toolchain_type",
 )
+
+worker_toolchain(
+    name = "worker_macos_x86_64",
+    worker_binary = "@rust_worker_macos_x86_64//file",
+)
+
+toolchain(
+    name = "macos_x86_64",
+    exec_compatible_with = [
+        "@platforms//os:macos",
+        "@platforms//cpu:x86_64",
+    ],
+    toolchain = ":worker_macos_x86_64",
+    toolchain_type = ":toolchain_type",
+)
