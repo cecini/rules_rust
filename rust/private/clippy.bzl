@@ -96,15 +96,10 @@ def _clippy_aspect_impl(target, ctx):
         emit = ["dep-info", "metadata"],
     )
 
-    # Deny the default-on clippy warning levels.
-    #
-    # If these are left as warnings, then Bazel will consider the execution
-    # result of the aspect to be "success", and Clippy won't be re-triggered
-    # unless the source file is modified.
-    args.add("-Dclippy::style")
-    args.add("-Dclippy::correctness")
-    args.add("-Dclippy::complexity")
-    args.add("-Dclippy::perf")
+    # Turn any warnings from clippy or rustc into an error, as otherwise
+    # Bazel will consider the execution result of the aspect to be "success",
+    # and Clippy won't be re-triggered unless the source file is modified.
+    args.add("-Dwarnings")
 
     ctx.actions.run(
         executable = ctx.executable._process_wrapper,
