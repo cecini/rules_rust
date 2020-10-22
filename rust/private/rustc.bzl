@@ -311,6 +311,11 @@ def get_linker_and_args(ctx, cc_toolchain, feature_configuration, rpaths):
 
     return ld, link_args, link_env
 
+def _expand_locations(ctx, env):
+    "Expand $(location ...) references in user-provided env vars."
+    data = getattr(ctx.attr, "data", [])
+    return dict([(k, ctx.expand_location(v, data)) for (k, v) in env.items()])
+
 def _process_build_scripts(
         ctx,
         file,
@@ -540,7 +545,7 @@ def construct_arguments(
                 env["CARGO_BIN_EXE_" + dep_crate_info.output.basename] = dep_crate_info.output.short_path
 
     # Update environment with user provided variables.
-    env.update(crate_info.rustc_env)
+    env.update(_expand_locations(ctx, crate_info.rustc_env))
 
     # This empty value satisfies Clippy, which otherwise complains about the
     # sysroot being undefined.
