@@ -2,6 +2,7 @@ load(
     "@io_bazel_rules_rust//rust:rust.bzl",
     "rust_test",
 )
+load("@io_bazel_rules_rust//cargo:cargo_build_script.bzl", "cargo_build_script")
 
 # generate a file
 genrule(
@@ -10,22 +11,35 @@ genrule(
     cmd = "echo hello > $@",
 )
 
+_env = {
+    "GENERATED_DATA": "$(rootpath generated.data)",
+    "SOME_TOOL": "$(rootpath @com_google_protobuf//:protoc)",
+}
+
+_data = [
+    # provide the generated file as a dep
+    "generated.data",
+    # we should also be able to access external binaries
+    # such as protoc.
+    "@com_google_protobuf//:protoc",
+]
+
+cargo_build_script(
+    name = "build",
+    srcs = ["build.rs"],
+    data = _data,
+    rustc_env = _env,
+)
+
 rust_test(
     name = "test",
     srcs = [
         "main.rs",
     ],
-    data = [
-        # provide the generated file as a dep
-        "generated.data",
-        # we should also be able to access external binaries
-        # such as protoc.
-        "@com_google_protobuf//:protoc",
-    ],
+    data = _data,
     edition = "2018",
-    rustc_env = {
-        # and pass in the locations to rustc
-        "GENERATED_DATA": "$(rootpath generated.data)",
-        "SOME_TOOL": "$(rootpath @com_google_protobuf//:protoc)",
-    },
+    rustc_env = _env,
+    deps = [
+        ":build",
+    ],
 )

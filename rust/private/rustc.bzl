@@ -311,13 +311,23 @@ def get_linker_and_args(ctx, cc_toolchain, feature_configuration, rpaths):
 
     return ld, link_args, link_env
 
+def _expand_location(ctx, data, is_build_script, env_string):
+    expanded = ctx.expand_location(env_string, data)
+    if is_build_script:
+        # locations are relative to parent folder when building
+        # a build script
+        expanded = "../" + expanded
+    return expanded
+
 def _expand_locations(ctx, env, aspect):
     "Expand $(location ...) references in user-provided env vars."
     if aspect:
         data = getattr(ctx.rule.attr, "data", [])
     else:
         data = getattr(ctx.attr, "data", [])
-    return dict([(k, ctx.expand_location(v, data)) for (k, v) in env.items()])
+    is_build_script = ctx.label.name.endswith("_script_")
+
+    return dict([(k, _expand_location(ctx, data, is_build_script, v)) for (k, v) in env.items()])
 
 def _process_build_scripts(
         ctx,
