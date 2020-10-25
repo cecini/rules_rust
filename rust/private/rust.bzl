@@ -417,6 +417,9 @@ _rust_common_attrs = {
     "rustc_env": attr.string_dict(
         doc = _tidy("""
             Dictionary of additional `"key": "value"` environment variables to set for rustc.
+
+            Supports $(rootpath ...) expansion, so you can use this to pass in the path to
+            a generated file or an external tool.
         """),
     ),
     "crate_features": attr.string_list(
