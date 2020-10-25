@@ -4,19 +4,11 @@ load("@io_bazel_rules_rust//rust:private/rustc.bzl", "BuildInfo", "DepInfo", "ge
 load("@io_bazel_rules_rust//rust:private/utils.bzl", "find_toolchain")
 load("@io_bazel_rules_rust//rust:rust.bzl", "rust_binary")
 
-def _expand_location(ctx, data, subfolder_level, env_string):
-    expanded = ctx.expand_location(env_string, data)
-
-    # if a variable was expanded, make path relative to working directory
-    if env_string != expanded:
-        expanded = "/".join([".."] * subfolder_level) + "/" + expanded
-    return expanded
-
-def _expand_locations(ctx, subfolder_level):
+def _expand_locations(ctx):
     "Expand $(execroot ...) references in user-provided env vars."
     env = ctx.attr.build_script_env
     data = getattr(ctx.attr, "data", [])
-    return dict([(k, _expand_location(ctx, data, subfolder_level, v)) for (k, v) in env.items()])
+    return dict([(k, ctx.expand_location(v, data)) for (k, v) in env.items()])
 
 def _build_script_impl(ctx):
     """The implementation for the `_build_script_run` rule.
@@ -102,7 +94,7 @@ def _build_script_impl(ctx):
     for f in ctx.attr.crate_features:
         env["CARGO_FEATURE_" + f.upper().replace("-", "_")] = "1"
 
-    env.update(_expand_locations(ctx, manifest_dir.count("/") + 1))
+    env.update(_expand_locations(ctx))
 
     tools = depset(
         direct = [
@@ -243,7 +235,10 @@ def cargo_build_script(
         rustc_env = {
            "CARGO_PKG_VERSION": "0.1.2",
         },
-        # Optional environment variables passed during build.rs execution
+        # Optional environment variables passed during build.rs execution.
+        # The path will be relative to the folder above bazel-out, so your
+        # build script will need to walk up the tree first - see build.rs
+        # in examples/env_locations for a demo.
         build_script_env = {
             "SOME_TOOL_OR_FILE": "$(execroot @tool//:binary)"
         }
