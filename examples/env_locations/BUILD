@@ -12,7 +12,9 @@ genrule(
 )
 
 _data = [
-    # provide the generated file as a dep
+    # we should be able to read non-generated source/data files
+    "source.file",
+    # and generated files as well
     "generated.data",
     # we should also be able to access external binaries
     # such as protoc.
@@ -23,6 +25,7 @@ cargo_build_script(
     name = "build",
     srcs = ["build.rs"],
     build_script_env = {
+        "SOURCE_FILE": "$(execpath source.file)",
         "GENERATED_DATA": "$(execpath generated.data)",
         "SOME_TOOL": "$(execpath @com_google_protobuf//:protoc)",
     },
@@ -37,6 +40,7 @@ rust_test(
     data = _data,
     edition = "2018",
     rustc_env = {
+        "SOURCE_FILE": "$(rootpath source.file)",
         "GENERATED_DATA": "$(rootpath generated.data)",
         "SOME_TOOL": "$(rootpath @com_google_protobuf//:protoc)",
     },

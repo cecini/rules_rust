@@ -12,6 +12,11 @@ fn main() {
         }
     }
 
+    // our source file should be readable
+    let path = execroot.join(env::var("SOURCE_FILE").unwrap());
+    let generated_data = fs::read_to_string(&path).unwrap();
+    assert_eq!(generated_data, "source\n");
+    
     // our generated data file should be readable
     let path = execroot.join(env::var("GENERATED_DATA").unwrap());
     let generated_data = fs::read_to_string(&path).unwrap();
