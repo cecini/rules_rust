@@ -30,6 +30,7 @@ cargo_build_script(
         "SOME_TOOL": "$(execpath @com_google_protobuf//:protoc)",
     },
     data = _data,
+    run_in_execroot = True,
 )
 
 rust_test(

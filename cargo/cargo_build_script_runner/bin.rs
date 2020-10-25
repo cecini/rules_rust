@@ -37,6 +37,11 @@ fn main() -> Result<(), String> {
     let rustc_env = env::var("RUSTC").expect("RUSTC was not set");
     let manifest_dir = exec_root.join(&manifest_dir_env);
     let rustc = exec_root.join(&rustc_env);
+    let working_dir = if env::var("RUN_IN_EXECROOT").is_ok() {
+        &exec_root
+    } else {
+        &manifest_dir
+    };
 
     match (args.next(), args.next(), args.next(), args.next(), args.next(), args.next(), args.next()) {
         (Some(progname), Some(crate_name), Some(out_dir), Some(envfile), Some(flagfile), Some(linkflags), Some(depenvfile)) => {
@@ -48,7 +53,7 @@ fn main() -> Result<(), String> {
 
             let mut command = Command::new(exec_root.join(&progname));
             command
-                .current_dir(manifest_dir.clone())
+                .current_dir(working_dir)
                 .envs(target_env_vars)
                 .env("OUT_DIR", out_dir_abs)
                 .env("CARGO_MANIFEST_DIR", manifest_dir)

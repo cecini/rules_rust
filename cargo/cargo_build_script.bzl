@@ -60,6 +60,9 @@ def _build_script_impl(ctx):
         # OUT_DIR is set by the runner itself, rather than on the action.
     })
 
+    if ctx.attr.run_in_execroot:
+        env["RUN_IN_EXECROOT"] = "1"
+
     if ctx.attr.version:
         version = ctx.attr.version.split("+")[0].split(".")
         patch = version[2].split("-") if len(version) > 2 else [""]
@@ -174,6 +177,9 @@ _build_script_run = rule(
             doc = "Data or tools required by the build script.",
             allow_files = True,
         ),
+        "run_in_execroot": attr.bool(
+            doc = "Whether to start in execroot, or the manifest dir.",
+        ),
         "_cc_toolchain": attr.label(
             default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
         ),
@@ -199,6 +205,7 @@ def cargo_build_script(
         deps = [],
         build_script_env = {},
         data = [],
+        run_in_execroot = False,
         **kwargs):
     """Compile and execute a rust build script to generate build attributes
 
@@ -236,12 +243,14 @@ def cargo_build_script(
            "CARGO_PKG_VERSION": "0.1.2",
         },
         # Optional environment variables passed during build.rs execution.
-        # The path will be relative to the folder above bazel-out, so your
-        # build script will need to walk up the tree first - see build.rs
-        # in examples/env_locations for a demo.
         build_script_env = {
             "SOME_TOOL_OR_FILE": "$(execroot @tool//:binary)"
         }
+        # When passsing locations in, this must be set so the build script
+        # runs relative to execroot. When not set, the build script runs
+        # in CARGO_MANIFEST_DIR, for compatibility with crates imported
+        # via cargo raze.
+        run_in_execroot = True,
         # Optional data/tool dependencies
         data = ["@tool//:binary"],
     )
@@ -266,6 +275,7 @@ def cargo_build_script(
         deps (list, optional): The dependencies of the crate defined by `crate_name`.
         build_script_env (dict, optional): Environment variables for build scripts.
         data (list, optional): Files or tools needed by the build script.
+        run_in_execroot (bool, optional): Run in execroot instead of manifest folder, for location expansion.
         **kwargs: Forwards to the underlying `rust_binary` rule.
     """
     rust_binary(
@@ -284,4 +294,5 @@ def cargo_build_script(
         version = version,
         build_script_env = build_script_env,
         data = data,
+        run_in_execroot = run_in_execroot,
     )
