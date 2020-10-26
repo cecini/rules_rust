@@ -287,5 +287,6 @@ def cargo_build_script(
         crate_features = crate_features,
         version = version,
         build_script_env = build_script_env,
+        deps = deps,
         data = data,
     )
