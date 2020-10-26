@@ -4,11 +4,18 @@ load("@io_bazel_rules_rust//rust:private/rustc.bzl", "BuildInfo", "DepInfo", "ge
 load("@io_bazel_rules_rust//rust:private/utils.bzl", "find_toolchain")
 load("@io_bazel_rules_rust//rust:rust.bzl", "rust_binary")
 
+def _expand_location(ctx, env, data):
+    if env.startswith("$(execpath ") or env.startswith("$(location "):
+        # build script runner will replace with execroot
+        return "${pwd}/" + ctx.expand_location(env, data)
+    else:
+        return env
+
 def _expand_locations(ctx):
     "Expand $(execroot ...) references in user-provided env vars."
     env = ctx.attr.build_script_env
     data = getattr(ctx.attr, "data", [])
-    return dict([(k, ctx.expand_location(v, data)) for (k, v) in env.items()])
+    return dict([(k, _expand_location(ctx, v, data)) for (k, v) in env.items()])
 
 def _build_script_impl(ctx):
     """The implementation for the `_build_script_run` rule.
@@ -59,9 +66,6 @@ def _build_script_impl(ctx):
         "TARGET": toolchain.target_triple,
         # OUT_DIR is set by the runner itself, rather than on the action.
     })
-
-    if ctx.attr.run_in_execroot:
-        env["RUN_IN_EXECROOT"] = "1"
 
     if ctx.attr.version:
         version = ctx.attr.version.split("+")[0].split(".")
@@ -177,9 +181,6 @@ _build_script_run = rule(
             doc = "Data or tools required by the build script.",
             allow_files = True,
         ),
-        "run_in_execroot": attr.bool(
-            doc = "Whether to start in execroot, or the manifest dir.",
-        ),
         "_cc_toolchain": attr.label(
             default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
         ),
@@ -205,7 +206,6 @@ def cargo_build_script(
         deps = [],
         build_script_env = {},
         data = [],
-        run_in_execroot = False,
         **kwargs):
     """Compile and execute a rust build script to generate build attributes
 
@@ -246,11 +246,6 @@ def cargo_build_script(
         build_script_env = {
             "SOME_TOOL_OR_FILE": "$(execroot @tool//:binary)"
         }
-        # When passsing locations in, this must be set so the build script
-        # runs relative to execroot. When not set, the build script runs
-        # in CARGO_MANIFEST_DIR, for compatibility with crates imported
-        # via cargo raze.
-        run_in_execroot = True,
         # Optional data/tool dependencies
         data = ["@tool//:binary"],
     )
@@ -275,7 +270,6 @@ def cargo_build_script(
         deps (list, optional): The dependencies of the crate defined by `crate_name`.
         build_script_env (dict, optional): Environment variables for build scripts.
         data (list, optional): Files or tools needed by the build script.
-        run_in_execroot (bool, optional): Run in execroot instead of manifest folder, for location expansion.
         **kwargs: Forwards to the underlying `rust_binary` rule.
     """
     rust_binary(
@@ -294,5 +288,4 @@ def cargo_build_script(
         version = version,
         build_script_env = build_script_env,
         data = data,
-        run_in_execroot = run_in_execroot,
     )

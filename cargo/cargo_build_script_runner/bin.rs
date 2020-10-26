@@ -37,11 +37,6 @@ fn main() -> Result<(), String> {
     let rustc_env = env::var("RUSTC").expect("RUSTC was not set");
     let manifest_dir = exec_root.join(&manifest_dir_env);
     let rustc = exec_root.join(&rustc_env);
-    let working_dir = if env::var("RUN_IN_EXECROOT").is_ok() {
-        &exec_root
-    } else {
-        &manifest_dir
-    };
 
     match (args.next(), args.next(), args.next(), args.next(), args.next(), args.next(), args.next()) {
         (Some(progname), Some(crate_name), Some(out_dir), Some(envfile), Some(flagfile), Some(linkflags), Some(depenvfile)) => {
@@ -53,7 +48,7 @@ fn main() -> Result<(), String> {
 
             let mut command = Command::new(exec_root.join(&progname));
             command
-                .current_dir(working_dir)
+                .current_dir(&manifest_dir)
                 .envs(target_env_vars)
                 .env("OUT_DIR", out_dir_abs)
                 .env("CARGO_MANIFEST_DIR", manifest_dir)
@@ -96,6 +91,15 @@ fn main() -> Result<(), String> {
                     command.env("AR", absolutify(&exec_root, ar_path));
                 }
             }
+
+            // replace env vars with a ${pwd} prefix with the exec_root
+            for (key, value) in env::vars() {
+                let exec_root_str = exec_root.to_str().expect("exec_root not in utf8");
+                if value.starts_with("${pwd}") {
+                    env::set_var(key, value.replacen("${pwd}", exec_root_str, 1));
+                }
+            }
+
 
             let output = BuildScriptOutput::from_command(&mut command).map_err(|exit_code| {
                 format!(

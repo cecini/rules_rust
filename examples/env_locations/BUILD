@@ -25,12 +25,12 @@ cargo_build_script(
     name = "build",
     srcs = ["build.rs"],
     build_script_env = {
+        # both execpath and location should work
         "SOURCE_FILE": "$(execpath source.file)",
-        "GENERATED_DATA": "$(execpath generated.data)",
+        "GENERATED_DATA": "$(location generated.data)",
         "SOME_TOOL": "$(execpath @com_google_protobuf//:protoc)",
     },
     data = _data,
-    run_in_execroot = True,
 )
 
 rust_test(
