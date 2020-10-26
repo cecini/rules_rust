@@ -6,8 +6,7 @@
 ## cargo_build_script
 
 <pre>
-cargo_build_script(<a href="#cargo_build_script-name">name</a>, <a href="#cargo_build_script-crate_name">crate_name</a>, <a href="#cargo_build_script-crate_features">crate_features</a>, <a href="#cargo_build_script-version">version</a>, <a href="#cargo_build_script-deps">deps</a>, <a href="#cargo_build_script-build_script_env">build_script_env</a>, <a href="#cargo_build_script-data">data</a>,
-                   <a href="#cargo_build_script-run_in_execroot">run_in_execroot</a>, <a href="#cargo_build_script-kwargs">kwargs</a>)
+cargo_build_script(<a href="#cargo_build_script-name">name</a>, <a href="#cargo_build_script-crate_name">crate_name</a>, <a href="#cargo_build_script-crate_features">crate_features</a>, <a href="#cargo_build_script-version">version</a>, <a href="#cargo_build_script-deps">deps</a>, <a href="#cargo_build_script-build_script_env">build_script_env</a>, <a href="#cargo_build_script-data">data</a>, <a href="#cargo_build_script-kwargs">kwargs</a>)
 </pre>
 
 Compile and execute a rust build script to generate build attributes
@@ -49,11 +48,6 @@ cargo_build_script(
     build_script_env = {
         "SOME_TOOL_OR_FILE": "$(execroot @tool//:binary)"
     }
-    # When passsing locations in, this must be set so the build script
-    # runs relative to execroot. When not set, the build script runs
-    # in CARGO_MANIFEST_DIR, for compatibility with crates imported
-    # via cargo raze.
-    run_in_execroot = True,
     # Optional data/tool dependencies
     data = ["@tool//:binary"],
 )
@@ -82,7 +76,6 @@ The `hello_lib` target will be build with the flags and the environment variable
 | <a id="cargo_build_script-deps"></a>deps |  The dependencies of the crate defined by <code>crate_name</code>.   |  <code>[]</code> |
 | <a id="cargo_build_script-build_script_env"></a>build_script_env |  Environment variables for build scripts.   |  <code>{}</code> |
 | <a id="cargo_build_script-data"></a>data |  Files or tools needed by the build script.   |  <code>[]</code> |
-| <a id="cargo_build_script-run_in_execroot"></a>run_in_execroot |  Run in execroot instead of manifest folder, for location expansion.   |  <code>False</code> |
 | <a id="cargo_build_script-kwargs"></a>kwargs |  Forwards to the underlying <code>rust_binary</code> rule.   |  none |
 
 
