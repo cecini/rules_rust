@@ -99,7 +99,16 @@ def _clippy_aspect_impl(target, ctx):
     # Turn any warnings from clippy or rustc into an error, as otherwise
     # Bazel will consider the execution result of the aspect to be "success",
     # and Clippy won't be re-triggered unless the source file is modified.
-    args.add("-Dwarnings")
+    if "__bindgen" in ctx.rule.attr.tags:
+        # bindgen-generated content is likely to trigger warnings, so
+        # only fail on clippy warnings
+        args.add("-Dclippy::style")
+        args.add("-Dclippy::correctness")
+        args.add("-Dclippy::complexity")
+        args.add("-Dclippy::perf")
+    else:
+        # fail on any warning
+        args.add("-Dwarnings")
 
     if crate_info.is_test:
         args.add("--test")
