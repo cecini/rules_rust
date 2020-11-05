@@ -47,6 +47,7 @@ def rust_bindgen_library(
     rust_library(
         name = name,
         srcs = [name + "__bindgen.rs"],
+        tags = ["__bindgen"],
         deps = [cc_lib],
         **kwargs
     )
