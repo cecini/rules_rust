@@ -28,11 +28,20 @@ using CharType = process_wrapper::System::StrType::value_type;
 int PW_MAIN(int argc, const CharType* argv[], const CharType* envp[]) {
   using namespace process_wrapper;
 
+  System::StrType current_dir = System::GetWorkingDirectory();
+
   System::EnvironmentBlock environment_block;
   // Taking all environment variables from the current process
-  // and sending them down to the child process
+  // and sending them down to the child process, replacing
+  // ${pwd} with the current folder.
   for (int i = 0; envp[i] != nullptr; ++i) {
-    environment_block.push_back(envp[i]);
+    System::StrType replaced = envp[i];
+    std::size_t location;
+    while ((location = replaced.find("${pwd}")) != System::StrType::npos) {
+      replaced = replaced.replace(location, 6, current_dir);
+    }
+
+    environment_block.push_back(replaced);
   }
 
   using Subst = std::pair<System::StrType, System::StrType>;
@@ -72,7 +81,7 @@ int PW_MAIN(int argc, const CharType* argv[], const CharType* envp[]) {
       }
       System::StrType value = subst.substr(equal_pos + 1, subst.size());
       if (value == PW_SYS_STR("${pwd}")) {
-        value = System::GetWorkingDirectory();
+        value = current_dir;
       }
       subst_mappings.push_back({std::move(key), std::move(value)});
     } else if (arg == PW_SYS_STR("--env-file")) {
